@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "85.4%",
+  "category": "HR",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "78.5%",
+  "privacy_accuracy": "75.0%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:43:06.990599Z"
+}

@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "89.7%",
+  "category": "BPO",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "79.8%",
+  "privacy_accuracy": "87.5%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:39:57.437457Z"
+}

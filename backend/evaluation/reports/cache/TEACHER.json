@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "92.6%",
+  "category": "TEACHER",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "80.4%",
+  "privacy_accuracy": "87.5%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:44:19.647717Z"
+}

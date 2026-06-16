@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "93.3%",
+  "category": "ARTS",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "75.4%",
+  "privacy_accuracy": "87.5%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:38:43.524003Z"
+}

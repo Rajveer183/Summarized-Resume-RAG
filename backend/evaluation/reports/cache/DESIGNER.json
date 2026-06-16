@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "84.0%",
+  "category": "DESIGNER",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "81.9%",
+  "privacy_accuracy": "75.0%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:41:19.302387Z"
+}

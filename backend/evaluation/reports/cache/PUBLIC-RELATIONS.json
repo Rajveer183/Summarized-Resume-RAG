@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "87.6%",
+  "category": "PUBLIC-RELATIONS",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "83.1%",
+  "privacy_accuracy": "75.0%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:43:44.789382Z"
+}

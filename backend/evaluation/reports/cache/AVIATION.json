@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "94.3%",
+  "category": "AVIATION",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "77.7%",
+  "privacy_accuracy": "87.5%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:39:22.783341Z"
+}

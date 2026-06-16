@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "92.1%",
+  "category": "BUSINESS-DEVELOPMENT",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "84.1%",
+  "privacy_accuracy": "75.0%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:40:12.021511Z"
+}

@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "87.5%",
+  "category": "DIGITAL-MEDIA",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "83.7%",
+  "privacy_accuracy": "87.5%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:41:36.613437Z"
+}

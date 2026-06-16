@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "86.3%",
+  "category": "CONSULTANT",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "80.0%",
+  "privacy_accuracy": "75.0%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:40:59.028224Z"
+}

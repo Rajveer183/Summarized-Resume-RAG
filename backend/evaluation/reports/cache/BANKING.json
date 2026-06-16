@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "86.6%",
+  "category": "BANKING",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "83.5%",
+  "privacy_accuracy": "87.5%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:39:39.409274Z"
+}

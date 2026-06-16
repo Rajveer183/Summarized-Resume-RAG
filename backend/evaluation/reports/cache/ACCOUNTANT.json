@@ -1,0 +1,9 @@
+{
+  "category": "ACCOUNTANT",
+  "retrieval_accuracy": "100.0%",
+  "category_accuracy": "100.0%",
+  "content_accuracy": "85.4%",
+  "privacy_accuracy": "75.0%",
+  "overall_accuracy": "91.9%",
+  "evaluated_at": "2026-06-01T09:08:42.040510Z"
+}

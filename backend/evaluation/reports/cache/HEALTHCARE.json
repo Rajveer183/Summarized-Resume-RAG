@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "83.3%",
+  "category": "HEALTHCARE",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "79.9%",
+  "privacy_accuracy": "75.0%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:42:49.602854Z"
+}

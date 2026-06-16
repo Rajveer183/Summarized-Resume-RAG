@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "82.9%",
+  "category": "ENGINEERING",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "75.8%",
+  "privacy_accuracy": "75.0%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:41:54.530947Z"
+}

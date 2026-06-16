@@ -1,0 +1,9 @@
+{
+    "overall_accuracy": "90.8%",
+    "privacy_accuracy": "87.5%",
+    "category": "AGRICULTURE",
+    "category_accuracy": "100.0%",
+    "content_accuracy": "75.6%",
+    "evaluated_at": "2026-06-01T09:09:31.939726Z",
+    "retrieval_accuracy": "100.0%"
+}

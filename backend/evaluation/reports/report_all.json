@@ -1,0 +1,240 @@
+{
+  "categories": [
+    {
+      "overall_accuracy": "91.1%",
+      "category": "ACCOUNTANT",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "82.7%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-06-01T09:05:32.422648Z"
+    },
+    {
+      "overall_accuracy": "92.3%",
+      "category": "ADVOCATE",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "77.0%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:37:55.517013Z"
+    },
+    {
+      "overall_accuracy": "93.7%",
+      "category": "AGRICULTURE",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "77.6%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:38:13.209946Z"
+    },
+    {
+      "overall_accuracy": "94.9%",
+      "category": "APPAREL",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "80.9%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:38:30.067909Z"
+    },
+    {
+      "overall_accuracy": "93.3%",
+      "category": "ARTS",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "75.4%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:38:43.524003Z"
+    },
+    {
+      "overall_accuracy": "88.3%",
+      "category": "AUTOMOBILE",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "77.9%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:39:09.184909Z"
+    },
+    {
+      "overall_accuracy": "94.3%",
+      "category": "AVIATION",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "77.7%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:39:22.783341Z"
+    },
+    {
+      "overall_accuracy": "86.6%",
+      "category": "BANKING",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "83.5%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:39:39.409274Z"
+    },
+    {
+      "overall_accuracy": "89.7%",
+      "category": "BPO",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "79.8%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:39:57.437457Z"
+    },
+    {
+      "overall_accuracy": "92.1%",
+      "category": "BUSINESS-DEVELOPMENT",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "84.1%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:40:12.021511Z"
+    },
+    {
+      "overall_accuracy": "84.1%",
+      "category": "CHEF",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "83.0%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:40:29.594065Z"
+    },
+    {
+      "overall_accuracy": "93.3%",
+      "category": "CONSTRUCTION",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "75.6%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:40:43.743749Z"
+    },
+    {
+      "overall_accuracy": "86.3%",
+      "category": "CONSULTANT",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "80.0%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:40:59.028224Z"
+    },
+    {
+      "overall_accuracy": "84.0%",
+      "category": "DESIGNER",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "81.9%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:41:19.302387Z"
+    },
+    {
+      "overall_accuracy": "87.5%",
+      "category": "DIGITAL-MEDIA",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "83.7%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:41:36.613437Z"
+    },
+    {
+      "overall_accuracy": "82.9%",
+      "category": "ENGINEERING",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "75.8%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:41:54.530947Z"
+    },
+    {
+      "overall_accuracy": "83.9%",
+      "category": "FINANCE",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "77.0%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:42:13.819449Z"
+    },
+    {
+      "overall_accuracy": "86.1%",
+      "category": "FITNESS",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "81.6%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:42:31.026509Z"
+    },
+    {
+      "overall_accuracy": "83.3%",
+      "category": "HEALTHCARE",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "79.9%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:42:49.602854Z"
+    },
+    {
+      "overall_accuracy": "85.4%",
+      "category": "HR",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "78.5%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:43:06.990599Z"
+    },
+    {
+      "overall_accuracy": "83.8%",
+      "category": "INFORMATION-TECHNOLOGY",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "77.1%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:43:26.405577Z"
+    },
+    {
+      "overall_accuracy": "87.6%",
+      "category": "PUBLIC-RELATIONS",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "83.1%",
+      "privacy_accuracy": "75.0%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:43:44.789382Z"
+    },
+    {
+      "overall_accuracy": "85.1%",
+      "category": "SALES",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "80.4%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:44:03.442960Z"
+    },
+    {
+      "overall_accuracy": "92.6%",
+      "category": "TEACHER",
+      "retrieval_accuracy": "100.0%",
+      "content_accuracy": "80.4%",
+      "privacy_accuracy": "87.5%",
+      "category_accuracy": "100.0%",
+      "evaluated_at": "2026-05-31T14:44:19.647717Z"
+    }
+  ],
+  "summary": {
+    "retrieval_accuracy": "100.0%",
+    "category_accuracy": "100.0%",
+    "content_accuracy": "79.8%",
+    "privacy_accuracy": "81.2%",
+    "overall_accuracy": "88.4%"
+  },
+  "evaluated_at": "2026-06-01T09:07:12.826666Z",
+  "total_categories": 24,
+  "latest_single": {
+    "overall_accuracy": "91.1%",
+    "category": "ACCOUNTANT",
+    "retrieval_accuracy": "100.0%",
+    "content_accuracy": "82.7%",
+    "privacy_accuracy": "75.0%",
+    "category_accuracy": "100.0%",
+    "evaluated_at": "2026-06-01T09:05:32.422648Z"
+  },
+  "cached_at": "2026-06-01T09:07:12.827818Z",
+  "from_cache": false
+}

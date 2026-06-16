@@ -1,0 +1,9 @@
+{
+  "overall_accuracy": "88.3%",
+  "category": "AUTOMOBILE",
+  "retrieval_accuracy": "100.0%",
+  "content_accuracy": "77.9%",
+  "privacy_accuracy": "75.0%",
+  "category_accuracy": "100.0%",
+  "evaluated_at": "2026-05-31T14:39:09.184909Z"
+}
