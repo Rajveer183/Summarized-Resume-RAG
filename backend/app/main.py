@@ -16,12 +16,14 @@ logger = get_logger(__name__)
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
 
+    import os
     app = FastAPI(
         title="Resume Generator API",
         description="Generate and evaluate professional resumes by job category.",
         version="1.0.0",
         docs_url="/docs",
         redoc_url="/redoc",
+        root_path=os.getenv("ROOT_PATH", ""),
     )
 
     # ── CORS Middleware ───────────────────────────────────────────────────────

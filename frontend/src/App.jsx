@@ -2,7 +2,7 @@
  * App.jsx — Main application component.
  */
 import { useState, useEffect } from "react";
-import { getCategories, generateResume } from "./api/resumeApi";
+import { getCategories, generateResume, streamResume } from "./api/resumeApi";
 import CategorySelector from "./components/CategorySelector";
 import GenerateButton from "./components/GenerateButton";
 import ResumePreview from "./components/ResumePreview";
@@ -38,19 +38,36 @@ export default function App() {
       return;
     }
     setError("");
-    setResumeData(null);
+    setResumeData({ resume_text: "" }); // initialize with empty text
     setLoading(true);
 
     try {
-      const result = await generateResume(selectedCategory);
-      setResumeData(result);
+      await streamResume(
+        selectedCategory,
+        (chunk) => {
+          setResumeData(prev => ({
+            ...prev,
+            resume_text: (prev?.resume_text || "") + chunk
+          }));
+        },
+        (finalData) => {
+          setResumeData(prev => ({
+            ...prev,
+            ...finalData
+          }));
+          setLoading(false);
+        },
+        (err) => {
+          const msg = err?.message || "Resume generation failed. Please try again.";
+          setError(msg);
+          setResumeData(null);
+          setLoading(false);
+        }
+      );
     } catch (err) {
-      const msg =
-        err?.response?.data?.detail ||
-        err?.message ||
-        "Resume generation failed. Please try again.";
+      const msg = err?.message || "Resume generation failed. Please try again.";
       setError(msg);
-    } finally {
+      setResumeData(null);
       setLoading(false);
     }
   };

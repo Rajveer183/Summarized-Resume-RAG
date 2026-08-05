@@ -8,7 +8,7 @@ class GenerateResumeRequest(BaseModel):
     category: str = Field(
         ...,
         description="Resume category name (e.g., 'INFORMATION-TECHNOLOGY')",
-        example="INFORMATION-TECHNOLOGY",
+        json_schema_extra={"example": "INFORMATION-TECHNOLOGY"},
     )
 
 

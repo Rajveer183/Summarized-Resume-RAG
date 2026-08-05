@@ -1,9 +1,9 @@
 {
-    "overall_accuracy": "90.8%",
-    "privacy_accuracy": "87.5%",
-    "category": "AGRICULTURE",
+    "evaluated_at": "2026-05-31T14:42:49.602854Z",
+    "retrieval_accuracy": "100.0%",
+    "content_accuracy": "79.9%",
+    "privacy_accuracy": "75.0%",
     "category_accuracy": "100.0%",
-    "content_accuracy": "75.6%",
-    "evaluated_at": "2026-06-01T09:09:31.939726Z",
-    "retrieval_accuracy": "100.0%"
+    "category": "HEALTHCARE",
+    "overall_accuracy": "83.3%"
 }

@@ -12,6 +12,7 @@ import traceback
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.responses import FileResponse
 
 from backend.app.api.schemas import (
@@ -23,7 +24,7 @@ from backend.app.api.schemas import (
 )
 from backend.app.config import config
 from backend.app.services.pdf_generator import generate_pdf
-from backend.app.services.resume_generator import generate_resume
+from backend.app.services.resume_generator import generate_resume, stream_generate_resume
 from backend.app.utils.file_utils import list_categories
 from backend.app.utils.logger import get_logger
 
@@ -98,17 +99,17 @@ async def _run_ingest_task():
 
 # ── Generate Resume ────────────────────────────────────────────────────────────
 
-@router.post("/generate-resume", response_model=GenerateResumeResponse, tags=["Resume"])
-async def generate_resume_endpoint(request: GenerateResumeRequest):
+@router.post("/generate-resume", tags=["Resume"])
+def generate_resume_endpoint(request: GenerateResumeRequest):
     """
     Generate a professional anonymized resume for the given category.
 
     Pipeline:
       1. Retrieve relevant chunks from ChromaDB (filtered by category)
       2. Apply MMR retrieval + CrossEncoder reranking
-      3. Call NVIDIA NIM LLM to generate resume text
+      3. Call NVIDIA NIM LLM to generate resume text (streamed)
       4. Convert to PDF and save
-      5. Return resume text + PDF download URL
+      5. Yield final metadata and PDF URL
 
     Request body:
       { "category": "INFORMATION-TECHNOLOGY" }
@@ -124,37 +125,12 @@ async def generate_resume_endpoint(request: GenerateResumeRequest):
             detail=f"Category '{category}' not found. Available: {available}",
         )
 
-    # ── Generate resume text ──────────────────────────────────────────────────
-    try:
-        result = generate_resume(category)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
-    except Exception as e:
-        logger.error(f"Resume generation failed: {e}\n{traceback.format_exc()}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Resume generation failed: {str(e)}",
-        )
-
-    resume_text = result["resume_text"]
-
-    # ── Generate PDF ──────────────────────────────────────────────────────────
-    pdf_path = None
-    pdf_url = ""
-    try:
-        pdf_path = generate_pdf(resume_text, category)
-        if pdf_path:
-            pdf_url = f"/download/{pdf_path.name}"
-            logger.info(f"PDF available at: {pdf_url}")
-    except Exception as e:
-        logger.error(f"PDF generation failed: {e}")
-        pdf_url = ""  # Resume text still returned even if PDF fails
-
-    return GenerateResumeResponse(
-        category=category,
-        resume_text=resume_text,
-        pdf_url=pdf_url,
+    # ── Generate resume text (Stream) ──────────────────────────────────────────
+    return StreamingResponse(
+        stream_generate_resume(category),
+        media_type="text/event-stream"
     )
+
 
 
 # ── Download PDF ───────────────────────────────────────────────────────────────

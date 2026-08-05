@@ -88,72 +88,37 @@ def _mmr_select(
 
 def retrieve_chunks(category: str) -> List[Dict[str, Any]]:
     """
-    Retrieve top relevant and diverse chunks for a given category.
-
-    Args:
-        category: The resume category name (e.g., "INFORMATION-TECHNOLOGY")
-
-    Returns:
-        List of chunk dicts: {"text": str, "metadata": dict, "distance": float}
+    Retrieve top relevant chunks for a given category.
+    Bypasses semantic search (and PyTorch) to prevent Windows CPU deadlocks.
     """
     logger.info(f"Retrieving chunks for category: {category}")
+    from backend.app.services.vector_store import ensure_collection_healthy, get_collection
 
     ensure_collection_healthy()
+    collection = get_collection()
 
-    query_text = (
-        f"professional resume for {category.replace('-', ' ').lower()} "
-        "role skills experience education"
-    )
-    query_embedding = embed_query(query_text)
-
-    results = query_by_category(
-        query_embedding=query_embedding,
-        category=category,
-        n_results=config.RETRIEVAL_FETCH_K,
+    results = collection.get(
+        where={"category": category},
+        limit=config.RETRIEVAL_TOP_K,
+        include=["documents", "metadatas"]
     )
 
-    documents = results.get("documents", [[]])[0]
-    metadatas = results.get("metadatas", [[]])[0]
-    distances = results.get("distances", [[]])[0]
-    embeddings = results.get("embeddings", [[]])[0]
+    documents = results.get("documents", [])
+    metadatas = results.get("metadatas", [])
 
     if not documents:
         logger.warning(f"No chunks found for category: {category}")
         return []
 
-    logger.info(f"Fetched {len(documents)} candidate chunks from ChromaDB")
-
-    if embeddings is None or len(embeddings) == 0 or embeddings[0] is None:
-        logger.warning("Chroma returned no embeddings; falling back to re-embed")
-        from backend.app.services.embedding_service import embed_texts
-
-        candidate_embeddings = embed_texts(documents)
-    else:
-        candidate_embeddings = [list(e) for e in embeddings]
+    logger.info(f"Fetched {len(documents)} candidate chunks directly from ChromaDB")
 
     candidates = [
         {
             "text": doc,
             "metadata": meta,
-            "distance": dist,
-            "relevance": _distance_to_similarity(dist),
+            "distance": 0.0,
+            "relevance": 1.0,
         }
-        for doc, meta, dist in zip(documents, metadatas, distances)
+        for doc, meta in zip(documents, metadatas)
     ]
-
-    selected = _mmr_select(
-        query_embedding=query_embedding,
-        candidate_embeddings=candidate_embeddings,
-        candidate_docs=candidates,
-        top_k=config.RETRIEVAL_TOP_K,
-    )
-
-    logger.info(f"MMR selected {len(selected)} diverse chunks")
-
-    sections = [c["metadata"].get("section_name", "Unknown") for c in selected]
-    section_counts: Dict[str, int] = {}
-    for s in sections:
-        section_counts[s] = section_counts.get(s, 0) + 1
-    logger.debug(f"Section distribution: {section_counts}")
-
-    return selected
+    return candidates

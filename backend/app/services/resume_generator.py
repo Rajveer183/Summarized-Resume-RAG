@@ -6,12 +6,14 @@ Resume Generator Service — orchestrates the full RAG pipeline:
   4. Call NVIDIA NIM LLM
   5. Return generated resume text
 """
-from typing import Dict, Any
+from typing import Dict, Any, Generator
+import json
 
 from openai import OpenAI
 
 from backend.app.config import config
 from backend.app.prompts.resume_prompt import build_prompt
+from backend.app.services.pdf_generator import generate_pdf
 from backend.app.services.resume_sanitizer import sanitize_resume_text
 from backend.app.services.retriever import retrieve_chunks
 from backend.app.services.reranker import rerank
@@ -36,6 +38,7 @@ def _get_nvidia_client() -> OpenAI:
         _nvidia_client = OpenAI(
             base_url=config.NVIDIA_BASE_URL,
             api_key=config.NVIDIA_API_KEY,
+            timeout=60.0,
         )
         logger.info(f"NVIDIA NIM client initialized (model: {config.NVIDIA_MODEL})")
     return _nvidia_client
@@ -68,9 +71,11 @@ def generate_resume(category: str) -> Dict[str, Any]:
             "Please run ingestion first: python backend/ingest.py"
         )
 
-    # ── Step 2: Rerank chunks ─────────────────────────────────────────────────
-    query = f"professional {category.replace('-', ' ').lower()} resume"
-    reranked_chunks = rerank(query=query, chunks=chunks)
+    # ── Step 2: Select top chunks (bypassing slow reranker) ───────────────────
+    # query = f"professional {category.replace('-', ' ').lower()} resume"
+    # reranked_chunks = rerank(query=query, chunks=chunks)
+    
+    reranked_chunks = chunks[:config.RERANKER_TOP_N]
 
     sections_covered = list(set(
         c["metadata"].get("section_name", "General") for c in reranked_chunks
@@ -113,3 +118,61 @@ def generate_resume(category: str) -> Dict[str, Any]:
         "sections_covered": sections_covered,
         "model_used": config.NVIDIA_MODEL,
     }
+
+
+def stream_generate_resume(category: str) -> Generator[str, None, None]:
+    """
+    Full RAG pipeline (Streaming): retrieve → rerank → stream resume chunks.
+    Yields Server-Sent Events (SSE).
+    """
+    logger.info(f"Starting streaming generation for: {category}")
+
+    try:
+        chunks = retrieve_chunks(category)
+        if not chunks:
+            yield f"event: error\ndata: {json.dumps({'detail': f'No data found for {category}'})}\n\n"
+            return
+
+        reranked_chunks = chunks[:config.RERANKER_TOP_N]
+        system_prompt, user_prompt = build_prompt(category=category, context_chunks=reranked_chunks)
+
+        client = _get_nvidia_client()
+        logger.info(f"Streaming from NVIDIA NIM model: {config.NVIDIA_MODEL}")
+        
+        response = client.chat.completions.create(
+            model=config.NVIDIA_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=config.LLM_TEMPERATURE,
+            top_p=config.LLM_TOP_P,
+            max_tokens=config.LLM_MAX_TOKENS,
+            stream=True,
+        )
+
+        full_text = ""
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                content = chunk.choices[0].delta.content
+                full_text += content
+                yield f"data: {json.dumps({'text': content})}\n\n"
+
+        # Sanitize and Generate PDF
+        sanitized_text = sanitize_resume_text(full_text, category)
+        pdf_path = generate_pdf(sanitized_text, category)
+        pdf_url = f"/download/{pdf_path.name}" if pdf_path else ""
+
+        # Yield final metadata
+        final_data = {
+            "pdf_url": pdf_url,
+            "category": category,
+            "chunks_used": len(reranked_chunks),
+            "model_used": config.NVIDIA_MODEL,
+        }
+        yield f"event: complete\ndata: {json.dumps(final_data)}\n\n"
+
+    except Exception as e:
+        logger.error(f"Streaming failed: {e}")
+        yield f"event: error\ndata: {json.dumps({'detail': str(e)})}\n\n"
+

@@ -23,9 +23,74 @@ export async function getCategories() {
 }
 
 /**
- * Generate a resume for the given category.
- * @param {string} category - The job category (e.g., "INFORMATION-TECHNOLOGY")
- * @returns {Promise<Object>} Generated resume data
+ * Generate a resume for the given category (Streamed).
+ * @param {string} category - The job category
+ * @param {function} onChunk - Callback when new text chunk arrives
+ * @param {function} onComplete - Callback with final metadata (pdf_url, etc)
+ * @param {function} onError - Callback on error
+ */
+export async function streamResume(category, onChunk, onComplete, onError) {
+  try {
+    const response = await fetch(`${BASE_URL}/generate-resume`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Request failed");
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+    let buffer = "";
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      if (value) {
+        buffer += decoder.decode(value, { stream: true });
+        
+        // Process SSE lines
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || ""; // Keep the incomplete part
+
+        for (const line of lines) {
+          if (line.startsWith("event: error")) {
+            const dataLine = line.split("\n").find(l => l.startsWith("data: "));
+            if (dataLine) {
+              const data = JSON.parse(dataLine.replace("data: ", ""));
+              onError(new Error(data.detail));
+              return;
+            }
+          } else if (line.startsWith("event: complete")) {
+            const dataLine = line.split("\n").find(l => l.startsWith("data: "));
+            if (dataLine) {
+              const data = JSON.parse(dataLine.replace("data: ", ""));
+              onComplete(data);
+            }
+          } else if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.replace("data: ", ""));
+              if (data.text) {
+                onChunk(data.text);
+              }
+            } catch (e) {
+              // ignore parse errors for partial json if any
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    onError(err);
+  }
+}
+
+/**
+ * Generate a resume for the given category (Legacy - non-streaming fallback if needed).
  */
 export async function generateResume(category) {
   const response = await api.post("/generate-resume", { category });
