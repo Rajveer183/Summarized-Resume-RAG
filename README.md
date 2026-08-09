@@ -9,7 +9,8 @@ The app includes a React UI with resume generation and an accuracy evaluation da
 ## Features
 
 - **24 professional categories** — resumes synthesized from real PDF datasets per category
-- **RAG pipeline** — MMR retrieval from ChromaDB + CrossEncoder reranking
+- **RAG pipeline** — MMR retrieval from ChromaDB (CrossEncoder reranking available but currently bypassed for speed)
+- **Streaming UI** — real-time resume generation via Server-Sent Events (SSE)
 - **Universal resume template** — fixed section order, category-based designation (e.g. *Professional Healthcare Specialist*), anonymized placeholders
 - **PII protection** — names, emails, phones, URLs, and dates removed or replaced during ingest and generation
 - **PDF export** — formatted download via ReportLab (WeasyPrint when available)
@@ -67,7 +68,7 @@ copy .env.example .env
 ### 2. Backend Setup
 
 ```bash
-![1780378663797](image/README/1780378663797.png)cd backend
+cd backend
 
 # Create a virtual environment
 python -m venv venv
@@ -165,9 +166,9 @@ curl -X POST http://localhost:8000/generate-resume \
 ```
 PDFs → PII Cleaner → Chunker → Embedder → ChromaDB
                                               ↓
-User selects category → MMR Retrieval → CrossEncoder Reranker
+User selects category → MMR Retrieval (Reranker bypassed)
                                               ↓
-                    NVIDIA NIM LLM → Sanitizer → Resume Text → PDF
+         NVIDIA NIM LLM (Streaming) → Sanitizer → Resume Text → PDF
 ```
 
 **Key services**
