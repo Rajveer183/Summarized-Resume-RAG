@@ -8,9 +8,9 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/data:/app/data
-      - ./backend/chroma_db:/app/chroma_db
-      - ./backend/generated_resumes:/app/generated_resumes
+      - ./data:/data
+      - ./backend/chroma_db:/backend/chroma_db
+      - ./backend/generated_resumes:/backend/generated_resumes
     env_file:
       - .env
     restart: unless-stopped
