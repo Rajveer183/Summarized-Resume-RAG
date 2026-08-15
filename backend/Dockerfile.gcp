@@ -1,0 +1,55 @@
+# ============================================================
+# Cloud Run production image for the FastAPI backend.
+#
+# Differs from backend/Dockerfile (used by local docker-compose) in one way:
+# this one is built with the PROJECT ROOT as the build context (not
+# ./backend), so it can bake in data/data (the 24 category PDF corpus) and
+# backend/chroma_db (the vector store you build with `python backend/ingest.py`)
+# in addition to the app code. Baking these in means the Cloud Run container
+# is fully self-contained and stateless-safe without needing a volume mount
+# for read-mostly data.
+#
+# Build from the PROJECT ROOT:
+#   gcloud builds submit --tag REGION-docker.pkg.dev/PROJECT_ID/resume-rag/backend:TAG \
+#     --file backend/Dockerfile.gcp .
+#
+# Local equivalent:
+#   docker build -f backend/Dockerfile.gcp -t backend:local .
+# ============================================================
+FROM python:3.11-slim
+
+# ── System deps ──────────────────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /
+
+# ── Python deps (cached layer — only reinstalled when requirements change) ─
+COPY backend/requirements.txt backend/requirements.txt
+RUN pip install --no-cache-dir -r backend/requirements.txt
+
+# ── App code ─────────────────────────────────────────────────────────────
+# Lands at /backend/app/... so `backend.app.main:app` resolves correctly
+# (PROJECT_ROOT in backend/app/config.py resolves to "/" inside the image).
+COPY backend/ backend/
+
+# ── Resume PDF corpus ────────────────────────────────────────────────────
+# Must exist locally before building (it's gitignored, not in the repo).
+# Lands at /data/data/<CATEGORY>/*.pdf, matching DATA_PATH=data/data default.
+COPY data/ data/
+
+# NOTE: if backend/chroma_db/ exists locally (i.e. you already ran
+# `python backend/ingest.py`), the `COPY backend/ backend/` line above
+# bakes it in too, so /generate-resume works immediately on deploy.
+# If it does NOT exist yet, ingest inside the running container once
+# (see DEPLOY_GCP.md "Run ingestion" step) or run a Cloud Run Job — either
+# way you'll need to rebuild+redeploy afterwards for the data to persist,
+# since Cloud Run containers are stateless/ephemeral.
+
+ENV PYTHONPATH=/
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
