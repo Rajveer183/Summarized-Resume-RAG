@@ -6,3 +6,13 @@ venv/
 __pycache__/
 *.pyc
 .DS_Store
+
+# Deployment hygiene (backend/Dockerfile.gcp build context = project root).
+# backend/chroma_db/ is intentionally NOT ignored — it's baked into the
+# Cloud Run image on purpose (see backend/Dockerfile.gcp).
+backend/generated_resumes/
+backend/chroma_db_test/
+backend/evaluation/reports/cache/*.tmp
+*.log
+.env
+.env.local

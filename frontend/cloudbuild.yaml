@@ -1,0 +1,21 @@
+# Optional: use this instead of a local `docker build` if you want the
+# frontend image built entirely in Cloud Build (needed because plain
+# `gcloud builds submit --tag` doesn't support --build-arg).
+#
+# Run from the frontend/ directory:
+#   gcloud builds submit --config=cloudbuild.yaml \
+#     --substitutions=_VITE_API_URL=https://your-backend-url,_IMAGE=REGION-docker.pkg.dev/PROJECT_ID/resume-rag/frontend:v1 \
+#     .
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - -f
+      - Dockerfile.gcp
+      - --build-arg
+      - VITE_API_URL=${_VITE_API_URL}
+      - -t
+      - ${_IMAGE}
+      - .
+images:
+  - '${_IMAGE}'

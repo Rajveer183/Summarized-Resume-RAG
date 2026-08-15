@@ -7,14 +7,15 @@
 # backend/chroma_db (the vector store you build with `python backend/ingest.py`)
 # in addition to the app code. Baking these in means the Cloud Run container
 # is fully self-contained and stateless-safe without needing a volume mount
-# for read-mostly data.
+# for read-mostly data. See commands.md for the full deploy sequence.
 #
 # Build from the PROJECT ROOT:
 #   gcloud builds submit --tag REGION-docker.pkg.dev/PROJECT_ID/resume-rag/backend:TAG \
 #     --file backend/Dockerfile.gcp .
 #
 # Local equivalent:
-#   docker build -f backend/Dockerfile.gcp -t backend:local .
+#   docker build -f backend/Dockerfile.gcp -t resume-rag-backend:local .
+#   docker run --rm -p 8000:8000 --env-file .env resume-rag-backend:local
 # ============================================================
 FROM python:3.11-slim
 
@@ -43,13 +44,19 @@ COPY data/ data/
 # `python backend/ingest.py`), the `COPY backend/ backend/` line above
 # bakes it in too, so /generate-resume works immediately on deploy.
 # If it does NOT exist yet, ingest inside the running container once
-# (see DEPLOY_GCP.md "Run ingestion" step) or run a Cloud Run Job — either
-# way you'll need to rebuild+redeploy afterwards for the data to persist,
-# since Cloud Run containers are stateless/ephemeral.
+# (see commands.md "Build the vector database" step) or run a Cloud Run
+# Job — either way you'll need to rebuild+redeploy afterwards for the data
+# to persist, since Cloud Run containers are stateless/ephemeral.
 
 ENV PYTHONPATH=/
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
+
+# Local `docker run` / `docker-compose` health signal. Cloud Run itself
+# probes the container over HTTP on the configured --port independently of
+# this instruction, but it's useful for `docker ps` and Compose users.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD python3 -c "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health', timeout=3)" || exit 1
 
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
