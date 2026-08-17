@@ -97,13 +97,28 @@ npm install
 npm run dev
 ```
 
+---
+
+### 4. Docker Setup (Alternative)
+
+If you prefer to run the entire stack using Docker, you can use `docker-compose`:
+
+```bash
+# Make sure .env is created and configured
+docker-compose up --build
+```
+This will start both the frontend and backend services in containers.
+
+---
+
+## Services Overview
+
 | Service  | URL                        |
 | -------- | -------------------------- |
 | Frontend | http://localhost:5173      |
 | Backend  | http://localhost:8000      |
 | API docs | http://localhost:8000/docs |
 
----
 
 ## Using the App
 
@@ -231,6 +246,29 @@ See `.env.example` for the full list. Important settings:
 
 ---
 
+## GCP Deployment Considerations
+
+When deploying this application to Google Cloud Platform (GCP), especially using serverless or containerized services, you must address the following architectural differences:
+
+### 1. Frontend (Cloud Storage / Firebase / Cloud Run)
+- The React/Vite frontend should be built statically (`npm run build`) and hosted on **Firebase Hosting** or a **Cloud Storage bucket** with Cloud CDN.
+- **Environment Variable:** Ensure `VITE_API_URL` is set to your deployed backend's public URL before running the build.
+
+### 2. Backend (Cloud Run)
+- Deploy the FastAPI backend using the provided `Dockerfile`.
+- **Secrets:** Store `NVIDIA_API_KEY` and `HF_TOKEN` securely in **Secret Manager** and expose them to the Cloud Run container as environment variables.
+- **Memory Limits:** Ensure the Cloud Run container is allocated at least **2GB-4GB of RAM** to load the `sentence-transformers` and `CrossEncoder` embedding models into memory upon cold start.
+
+### 3. Stateful Storage (Critical)
+Cloud Run and GKE Pods are **stateless** by default. This application relies on local file storage for two critical features which must be adapted for GCP:
+
+- **Vector Database (ChromaDB):** The app reads/writes to `backend/chroma_db/`. On a stateless container, this database will wipe on restart. 
+  - *Fix:* Mount a **Cloud Storage FUSE** bucket or **Filestore** volume to the Cloud Run instance to persist the ChromaDB directory. Alternatively, run ChromaDB in Client/Server mode on a stateful Compute Engine VM.
+- **PDF Generation:** Resumes are saved locally to `backend/generated_resumes/` for the `/download` endpoint. 
+  - *Fix:* Modify the backend to stream the PDF directly in the response, or upload the generated PDF directly to a **Google Cloud Storage (GCS) Bucket** and return a signed download URL to the frontend.
+
+---
+
 ## Troubleshooting
 
 | Issue                           | Fix                                                                                 |
@@ -245,3 +283,129 @@ See `.env.example` for the full list. Important settings:
 ## License
 
 Internal / project use — see repository owner for licensing terms.
+
+---
+
+## Version Control (.gitignore)
+
+The following files and directories are ignored by Git in this repository to prevent sensitive information, build artifacts, and local environments from being committed:
+
+```gitignore
+# ======================
+# Environment & Secrets
+# ======================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ======================
+# Python / Backend
+# ======================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+wheels/
+*.egg-link
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.log
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# ======================
+# Vector DB / Data
+# ======================
+backend/chroma_db/
+backend/chroma_db_test/
+data/
+
+# Generated files
+backend/generated_resumes/
+
+# ======================
+# Node.js / Frontend
+# ======================
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.cache/
+.npm
+.eslintcache
+*.tsbuildinfo
+.pnp
+.pnp.js
+
+# ======================
+# IDE & Editors
+# ======================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# ======================
+# OS Generated Files
+# ======================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ======================
+# Logs
+# ======================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+```
