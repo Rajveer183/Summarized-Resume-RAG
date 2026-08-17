@@ -1,0 +1,17 @@
+# Keeps the Cloud Build upload small and fast when running
+# `gcloud builds submit` from the project root.
+.git/
+.github/
+frontend/node_modules/
+frontend/dist/
+backend/venv/
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+backend/generated_resumes/
+*.log
+.env
+.env.local
