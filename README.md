@@ -1,4 +1,4 @@
-# Resume Generation RAG Application
+# Resume Generation RAG (Summarized-Resume-RAG)
 
 A full-stack **Retrieval-Augmented Generation (RAG)** application that generates professional, anonymized resumes for **24 job categories** using real resume data, NVIDIA NIM LLMs, and ChromaDB vector storage.
 
@@ -15,6 +15,12 @@ The app includes a React UI with resume generation and an accuracy evaluation da
 - **PII protection** — names, emails, phones, URLs, and dates removed or replaced during ingest and generation
 - **PDF export** — formatted download via ReportLab (WeasyPrint when available)
 - **Accuracy dashboard** — evaluate retrieval, category match, content, and privacy metrics per category or all 24 at once
+
+---
+
+## Screenshots
+
+_TODO: add screenshots of the Generator tab (category selection, streaming preview, PDF download) and the Accuracy dashboard, for example under `docs/screenshots/`._
 
 ---
 
@@ -59,7 +65,7 @@ project-root/
 
 ```bash
 # From project root (this folder)
-copy .env.example .env
+cp .env.example .env            # Windows: copy .env.example .env
 # Edit .env and set NVIDIA_API_KEY (and optionally HF_TOKEN)
 ```
 
@@ -107,7 +113,7 @@ If you prefer to run the entire stack using Docker, you can use `docker-compose`
 # Make sure .env is created and configured
 docker-compose up --build
 ```
-This will start both the frontend and backend services in containers.
+This starts both services in containers. The backend listens on port 8000 and the frontend (nginx) is served on port 80. The compose file mounts `./data`, `backend/chroma_db` and `backend/generated_resumes` into the backend container, so run ingestion first.
 
 ---
 
@@ -178,13 +184,29 @@ curl -X POST http://localhost:8000/generate-resume \
 
 ## Architecture
 
+```mermaid
+flowchart LR
+    subgraph Ingest["Ingestion (one-time)"]
+        P[Resume PDFs<br/>24 categories] --> L[PDF loader]
+        L --> C1[PII cleaner]
+        C1 --> CH[Section-aware chunker]
+        CH --> EM[Embeddings<br/>all-MiniLM-L6-v2]
+        EM --> DB[(ChromaDB<br/>resume_chunks, cosine)]
+    end
+    subgraph Gen["Generation (per request)"]
+        U[User picks category] --> R[MMR retrieval<br/>category-filtered]
+        DB --> R
+        R --> LLM[NVIDIA NIM LLM<br/>streaming via SSE]
+        LLM --> S[Sanitizer<br/>anonymize, strip dates, enforce template]
+        S --> T[Resume text]
+        T --> PDF[PDF export<br/>ReportLab]
+    end
+    T --> UI[React UI]
+    EV[Evaluation suite] -.-> R
+    EV -.-> T
 ```
-PDFs → PII Cleaner → Chunker → Embedder → ChromaDB
-                                              ↓
-User selects category → MMR Retrieval (Reranker bypassed)
-                                              ↓
-         NVIDIA NIM LLM (Streaming) → Sanitizer → Resume Text → PDF
-```
+
+See [EXPLANATION.md](EXPLANATION.md) for a step-by-step walkthrough of each stage.
 
 **Key services**
 
@@ -196,6 +218,44 @@ User selects category → MMR Retrieval (Reranker bypassed)
 | `resume_generator` | Prompt build + NVIDIA NIM call                    |
 | `resume_sanitizer` | Anonymization, date removal, template enforcement |
 | `pdf_generator`    | Parse structured text → ReportLab / HTML PDF     |
+
+---
+
+## Dataset
+
+The corpus is a set of real resume PDFs grouped into **24 category folders** under `data/data/<CATEGORY>/*.pdf` (see [Categories](#categories)). The dataset is **not included** in this repository (`data/` is git-ignored); place your own copy at `data/data/` (or point `DATA_PATH` to it) before running ingestion. Resumes are cleaned of personal information during ingestion (see [Privacy & PII](#privacy--pii)).
+
+## Models
+
+| Role | Model | Notes |
+|---|---|---|
+| Generation LLM | `meta/llama-3.1-70b-instruct` via NVIDIA NIM (default, `NVIDIA_MODEL`) | Streamed over an OpenAI-compatible API; temperature 0.2 by default |
+| Retrieval embeddings | `sentence-transformers/all-MiniLM-L6-v2` (default, `EMBEDDING_MODEL`) | Stored in ChromaDB with cosine distance |
+| Reranker | CrossEncoder (implemented in `reranker.py`) | Currently bypassed for speed; top chunks from MMR are used directly |
+| Evaluation embeddings | `BAAI/bge-base-en-v1.5` (default, `EVAL_EMBEDDING_MODEL`) | Used only by the evaluation suite, deliberately different from the ingestion model |
+
+Retrieval fetches `RETRIEVAL_FETCH_K` (default 30) candidates filtered by category, applies Maximal Marginal Relevance for diversity, and passes the top results to the LLM.
+
+## Evaluation and results
+
+The Accuracy tab (and `/evaluate/*` endpoints) score each category on four metrics, combined with fixed weights:
+
+| Metric | Weight | What it measures |
+|---|---|---|
+| Retrieval accuracy | 30% | Share of retrieved chunks whose metadata category matches the selected category |
+| Category accuracy | 25% | Whether an embedding-based classifier (BGE) assigns the generated resume to the requested category (100% or 0%) |
+| Content accuracy | 30% | Cosine similarity between the generated resume and the retrieved context (BGE embeddings) |
+| Privacy accuracy | 15% | 100 minus a penalty for detected PII leaks (emails, phones, URLs, addresses, real-looking names, real organisations) |
+
+**Latest saved all-category report** (`backend/evaluation/reports/report_all.json`, 24 categories, evaluated 31 May – 1 June 2026):
+
+| Retrieval | Category | Content | Privacy | Overall |
+|---|---|---|---|---|
+| 100.0% | 100.0% | 79.8% | 81.2% | 88.4% |
+
+Per-category overall scores range from 82.9% (ENGINEERING) to 94.9% (APPAREL). Per-category results are in `backend/evaluation/reports/cache/`.
+
+**How to read these numbers.** Retrieval accuracy is 100% largely by construction, because retrieval already filters on the category metadata. Content accuracy measures semantic similarity to retrieved context, not factual quality or recruiter judgment. These are self-evaluation metrics on generated data, not a human evaluation or an external benchmark.
 
 ---
 
@@ -242,30 +302,25 @@ See `.env.example` for the full list. Important settings:
 
 - **Backend:** FastAPI, ChromaDB, sentence-transformers, CrossEncoder, ReportLab, NVIDIA NIM (OpenAI-compatible API)
 - **Frontend:** React, Vite, Axios, Lucide icons
-- **Data:** 24 category PDF corpora under `data/data/`
+- **Data:** 24 category PDF corpora under `data/data/` (not included in the repo)
+- **Deployment:** Docker, docker-compose, Google Cloud Run / Firebase Hosting
 
 ---
 
-## GCP Deployment Considerations
+## Deployment (GCP)
 
-When deploying this application to Google Cloud Platform (GCP), especially using serverless or containerized services, you must address the following architectural differences:
+The repository includes a ready deployment path for **Google Cloud Run**:
 
-### 1. Frontend (Cloud Storage / Firebase / Cloud Run)
-- The React/Vite frontend should be built statically (`npm run build`) and hosted on **Firebase Hosting** or a **Cloud Storage bucket** with Cloud CDN.
-- **Environment Variable:** Ensure `VITE_API_URL` is set to your deployed backend's public URL before running the build.
+- `backend/Dockerfile.gcp` and `frontend/Dockerfile.gcp` (with `nginx.gcp.conf`) for Cloud Run images, plus `frontend/cloudbuild.yaml`.
+- `frontend/firebase.json` if you prefer Firebase Hosting for the static frontend.
+- [`commands.md`](commands.md): copy-pasteable steps covering Artifact Registry, Secret Manager (`NVIDIA_API_KEY`, `HF_TOKEN`), building the vector database, and deploying both services.
 
-### 2. Backend (Cloud Run)
-- Deploy the FastAPI backend using the provided `Dockerfile`.
-- **Secrets:** Store `NVIDIA_API_KEY` and `HF_TOKEN` securely in **Secret Manager** and expose them to the Cloud Run container as environment variables.
-- **Memory Limits:** Ensure the Cloud Run container is allocated at least **2GB-4GB of RAM** to load the `sentence-transformers` and `CrossEncoder` embedding models into memory upon cold start.
+Design decisions documented in `commands.md`:
 
-### 3. Stateful Storage (Critical)
-Cloud Run and GKE Pods are **stateless** by default. This application relies on local file storage for two critical features which must be adapted for GCP:
+1. `data/data/` and `backend/chroma_db/` are **baked into the backend image**, because ChromaDB's SQLite/HNSW files do not behave reliably on a Cloud Storage FUSE mount. The trade-off is rebuilding and redeploying after re-ingesting.
+2. `backend/generated_resumes/` is a **Cloud Storage volume mount**, so a PDF generated on one Cloud Run instance can be downloaded from another.
 
-- **Vector Database (ChromaDB):** The app reads/writes to `backend/chroma_db/`. On a stateless container, this database will wipe on restart. 
-  - *Fix:* Mount a **Cloud Storage FUSE** bucket or **Filestore** volume to the Cloud Run instance to persist the ChromaDB directory. Alternatively, run ChromaDB in Client/Server mode on a stateful Compute Engine VM.
-- **PDF Generation:** Resumes are saved locally to `backend/generated_resumes/` for the `/download` endpoint. 
-  - *Fix:* Modify the backend to stream the PDF directly in the response, or upload the generated PDF directly to a **Google Cloud Storage (GCS) Bucket** and return a signed download URL to the frontend.
+Allocate at least 2–4 GB of RAM to the backend so the embedding models can load on cold start, and set `VITE_API_URL` to the backend URL before building the frontend.
 
 ---
 
@@ -282,130 +337,10 @@ Cloud Run and GKE Pods are **stateless** by default. This application relies on 
 
 ## License
 
-Internal / project use — see repository owner for licensing terms.
+No open-source license has been specified; all rights reserved by the repository owner unless stated otherwise.
 
 ---
 
-## Version Control (.gitignore)
+## Version Control
 
-The following files and directories are ignored by Git in this repository to prevent sensitive information, build artifacts, and local environments from being committed:
-
-```gitignore
-# ======================
-# Environment & Secrets
-# ======================
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ======================
-# Python / Backend
-# ======================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
-eggs/
-parts/
-var/
-sdist/
-wheels/
-*.egg-link
-MANIFEST
-
-# Virtual environments
-venv/
-.venv/
-env/
-.env/
-ENV/
-env.bak/
-venv.bak/
-
-# Testing & coverage
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.nox/
-coverage.xml
-*.cover
-*.log
-
-# Type checking
-.mypy_cache/
-.dmypy.json
-dmypy.json
-.pytype/
-
-# Jupyter Notebooks
-.ipynb_checkpoints
-
-# ======================
-# Vector DB / Data
-# ======================
-backend/chroma_db/
-backend/chroma_db_test/
-data/
-
-# Generated files
-backend/generated_resumes/
-
-# ======================
-# Node.js / Frontend
-# ======================
-node_modules/
-frontend/node_modules/
-frontend/dist/
-frontend/.cache/
-.npm
-.eslintcache
-*.tsbuildinfo
-.pnp
-.pnp.js
-
-# ======================
-# IDE & Editors
-# ======================
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-*.swp
-*.swo
-*~
-
-# ======================
-# OS Generated Files
-# ======================
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-# ======================
-# Logs
-# ======================
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-```
+Secrets (`.env`), virtual environments, `node_modules`, the dataset (`data/`), the vector store (`backend/chroma_db/`) and generated PDFs (`backend/generated_resumes/`) are excluded by `.gitignore`. Evaluation reports under `backend/evaluation/reports/` are committed.
