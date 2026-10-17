@@ -82,7 +82,7 @@ A React + Vite app with a category selector, a Generate button with loading stat
 
 ## 7. Deployment
 
-Local development uses `uvicorn` and `npm run dev`, or `docker-compose`. A Google Cloud Run path (separate `Dockerfile.gcp` files, Cloud Build config, Secret Manager for API keys, Cloud Storage mount for generated PDFs) is documented step by step in [`commands.md`](commands.md).
+Local development uses `uvicorn` and `npm run dev`, or `docker-compose`. A Google Cloud Run path (separate `Dockerfile.gcp` files, Cloud Build config, Secret Manager for API keys, Cloud Storage mount for generated PDFs) is supported by the repository configuration (see the Deployment section of the README).
 
 ## 8. Limitations
 
