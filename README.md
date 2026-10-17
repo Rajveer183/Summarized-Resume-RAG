@@ -313,9 +313,9 @@ The repository includes a ready deployment path for **Google Cloud Run**:
 
 - `backend/Dockerfile.gcp` and `frontend/Dockerfile.gcp` (with `nginx.gcp.conf`) for Cloud Run images, plus `frontend/cloudbuild.yaml`.
 - `frontend/firebase.json` if you prefer Firebase Hosting for the static frontend.
-- [`commands.md`](commands.md): copy-pasteable steps covering Artifact Registry, Secret Manager (`NVIDIA_API_KEY`, `HF_TOKEN`), building the vector database, and deploying both services.
+- Deployment steps: store `NVIDIA_API_KEY` and `HF_TOKEN` in Secret Manager, build the vector database locally, then build and deploy both images to Cloud Run (via Artifact Registry).
 
-Design decisions documented in `commands.md`:
+Design decisions for the Cloud Run images:
 
 1. `data/data/` and `backend/chroma_db/` are **baked into the backend image**, because ChromaDB's SQLite/HNSW files do not behave reliably on a Cloud Storage FUSE mount. The trade-off is rebuilding and redeploying after re-ingesting.
 2. `backend/generated_resumes/` is a **Cloud Storage volume mount**, so a PDF generated on one Cloud Run instance can be downloaded from another.
